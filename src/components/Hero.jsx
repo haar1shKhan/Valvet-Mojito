@@ -1,18 +1,15 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { SplitText } from "gsap/all";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useMediaQuery } from "react-responsive";
 
 const Hero = () => {
- const videoRef = useRef(null);
+ const videoRef = useRef();
  
  const isMobile = useMediaQuery({ maxWidth: 767 });
  
- 
- useEffect(() => {
-	const videoEl = videoRef.current;
-
+ useGSAP(() => {
 	const heroSplit = new SplitText(".title", {
 	 type: "chars, words",
 	});
@@ -47,7 +44,6 @@ const Hero = () => {
 		start: "top top",
 		end: "bottom top",
 		scrub: true,
-		invalidateOnRefresh: true,
 	 },
 	})
 	.to(".right-leaf", { y: 200 }, 0)
@@ -59,52 +55,34 @@ const Hero = () => {
 	
 	let tl = gsap.timeline({
 	 scrollTrigger: {
-			trigger: videoEl,
-			start: startValue,
-			end: endValue,
-			scrub: true,
-			pin: true,
-			invalidateOnRefresh: true,
-		},
+		trigger: "video",
+		start: startValue,
+		end: endValue,
+		scrub: true,
+		pin: true,
+	 },
 	});
-
-	const handleLoadedMetadata = () => {
-	 if (!videoEl) return;
-	 tl.to(videoEl, {
-		currentTime: videoEl.duration,
-		ease: "none",
+	
+	videoRef.current.onloadedmetadata = () => {
+	 tl.to(videoRef.current, {
+		currentTime: videoRef.current.duration,
 	 });
 	};
-
-	if (videoEl) {
-	 if (videoEl.readyState >= 1) {
-		handleLoadedMetadata();
-	 } else {
-		videoEl.addEventListener("loadedmetadata", handleLoadedMetadata);
-	 }
-	}
-
-	return () => {
-	 if (videoEl) {
-		videoEl.removeEventListener("loadedmetadata", handleLoadedMetadata);
-	 }
-	 tl.kill(); // without this, the video will not pop up when initially the website is loaded
 	
-	};
  }, []);
  
  return (
 	<>
-	 <section id="hero" className="noisy overflow-hidden">
+	 <section id="hero" className="noisy">
 		<h1 className="title">MOJITO</h1>
 		
 		<img
-		 src="/public/images/hero-left-leaf.png"
+		 src="/images/hero-left-leaf.png"
 		 alt="left-leaf"
 		 className="left-leaf"
 		/>
 		<img
-		 src="/public/images/hero-right-leaf.png"
+		 src="/images/hero-right-leaf.png"
 		 alt="right-leaf"
 		 className="right-leaf"
 		/>
@@ -132,13 +110,13 @@ const Hero = () => {
 		</div>
 	 </section>
 	 
-	 <div className="video absolute inset-0">
+	 <div className="video absolute inset-0 ">
 		<video
 		 ref={videoRef}
 		 muted
 		 playsInline
-		 preload="auto"
-		 src="/public/videos/output.mp4"
+		 preload="metadata"
+		 src="/videos/output.mp4"
 		/>
 	 </div>
 	</>
